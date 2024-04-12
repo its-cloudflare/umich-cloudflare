@@ -1,0 +1,6 @@
+workflows:
+  clear_cache:
+    after:
+      - type: webphp
+        description: Clear Cloudflare Cache
+        script: wp-content/plugins/umich-cloudflare/scripts/wpcli-purgeall.php
