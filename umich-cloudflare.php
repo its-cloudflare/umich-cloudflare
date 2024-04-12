@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: U-M: Cloudflare Cache
- * Plugin URI: https://github.com/umdigital/umich-cloudflare/
+ * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
  * Version: 0.0.2
  * Author: U-M: Digital
@@ -46,8 +46,6 @@ class UMCloudflare
 
     static public function init()
     {
-        /* NOT ACTIVE
-        // UPDATER SETUP
         if( !class_exists( 'WP_GitHub_Updater' ) ) {
             include_once UMCLOUDFLARE_PATH .'includes'. DIRECTORY_SEPARATOR .'updater.php';
         }
@@ -61,13 +59,13 @@ class UMCloudflare
                 // this is the name of the folder your plugin lives in
                 'proper_folder_name' => dirname( plugin_basename( __FILE__ ) ),
                 // the github API url of your github repo
-                'api_url' => 'https://api.github.com/repos/umdigital/umich-cloudflare',
+                'api_url' => 'https://api.github.com/repos/its-cloudflare/umich-cloudflare',
                 // the github raw url of your github repo
-                'raw_url' => 'https://raw.githubusercontent.com/umdigital/umich-cloudflare/master',
+                'raw_url' => 'https://raw.githubusercontent.com/its-cloudflare/umich-cloudflare/main',
                 // the github url of your github repo
-                'github_url' => 'https://github.com/umdigital/umich-cloudflare',
+                'github_url' => 'https://github.com/its-cloudflare/umich-cloudflare',
                  // the zip url of the github repo
-                'zip_url' => 'https://github.com/umdigital/umich-cloudflare/zipball/master',
+                'zip_url' => 'https://github.com/its-cloudflare/umich-cloudflare/zipball/main',
                 // wether WP should check the validity of the SSL cert when getting an update, see https://github.com/jkudish/WordPress-GitHub-Plugin-Updater/issues/2 and https://github.com/jkudish/WordPress-GitHub-Plugin-Updater/issues/4 for details
                 'sslverify' => true,
                 // which version of WordPress does your plugin require?
@@ -80,7 +78,6 @@ class UMCloudflare
                 'access_token' => '',
             ));
         }
-        */
 
         add_action( 'init', function(){
             // IF LOGGED IN COOKIE AND COOKIE STALE (not logged in), LOGOUT
