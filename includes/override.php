@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Page specific cache overrides
+ */
 class UMCloudflare_Override
 {
     static public function init()

@@ -3,7 +3,7 @@
  * Plugin Name: U-M: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 0.0.2
+ * Version: 0.0.3
  * Author: U-M: Digital
  * Author URI: http://vpcomm.umich.edu
  */
@@ -183,6 +183,7 @@ class UMCloudflare
             });
         }
 
+        // get cloudflare zones for apikey
         add_action( 'wp_ajax_umcloudflare_zones', function(){
             $return = array(
                 'status'  => 'fail',
@@ -244,6 +245,9 @@ class UMCloudflare
         });
     }
 
+    /**
+     * Checks if plugin has been configured
+     */
     static public function isConfigured()
     {
         if( self::$_settings['apikey'] && self::$_settings['zone'] ) {
@@ -253,6 +257,9 @@ class UMCloudflare
         return false;
     }
 
+    /**
+     * Get the TTL for this requests response
+     */
     static public function getRequestTTL()
     {
         global $post;
@@ -341,6 +348,12 @@ class UMCloudflare
         }
     }
 
+    /**
+     * Purge one or more url paths
+     *
+     * @param  string|array $paths paths to be purged
+     * @return bool
+     */
     static public function purgePage( $paths )
     {
         if( !self::isConfigured() ) {
@@ -359,6 +372,12 @@ class UMCloudflare
         return self::_purge( [ 'files' => $paths ] );
     }
 
+    /**
+     * Purge everything beginning with one or more paths
+     *
+     * @param  string|array $paths paths to be purged
+     * @return bool
+     */
     static public function purgeAll( $paths )
     {
         if( !self::isConfigured() ) {
@@ -385,6 +404,12 @@ class UMCloudflare
         return self::_purge( [ 'prefixes' => $paths ] );
     }
 
+    /**
+     * Make call to cloudflare purge api
+     *
+     * @param array $params cloudflare purge params
+     * @return bool
+     */
     static private function _purge( $params )
     {
         $res = self::_callAPI(
@@ -411,6 +436,12 @@ class UMCloudflare
         return false;
     }
 
+    /**
+     * Normalize url and sanitize url for the blog issuing purge request
+     *
+     * @param  string $url URL to process
+     * @return string normalized and sanitized url
+     */
     static private function _cleanupURL( $url )
     {
         $baseParts = array_merge(array(
@@ -456,6 +487,11 @@ class UMCloudflare
 
     /**
      * CALL Cloudflare API
+     *
+     * @param  string $endpoint Cloudflare API endpoint to call
+     * @param  string $method   HTTP Method
+     * @param  string $data     Data payload to send to the API
+     * @return string|bool      API response, false on failure
      */
     static private function _callAPI( $endpoint, $method = 'GET', $data = null )
     {
@@ -576,6 +612,9 @@ class UMCloudflare
         }
     }
 
+    /**
+     * Plugin setting admin
+     */
     static public function adminMenu( $isNetwork = false )
     {
         $umCFFormSettings = [
@@ -783,6 +822,9 @@ class UMCloudflare
         );
     }
 
+    /**
+     * Handles Admin Bar menu functionality
+     */
     static public function ajaxOnPurge()
     {
         $url = isset( $_POST['url'] ) ? $_POST['url'] : false;
@@ -836,6 +878,12 @@ class UMCloudflare
         wp_die();
     }
 
+    /**
+     * Validate Cloudflare API Key
+     *
+     * @param string      $key Cloudflare API Key
+     * @return array|bool true on valid api key, errors on failure
+     */
     static private function _validateApiKey( $key )
     {
         $errors = [];
@@ -861,6 +909,12 @@ class UMCloudflare
         return $errors ?: true;
     }
 
+    /**
+     * Validate zone
+     *
+     * @param string      $key Cloudflare Zone
+     * @return array|bool true on valid zone, errors on failure
+     */
     static private function _validateApiZone( $zone )
     {
         $errors = [];

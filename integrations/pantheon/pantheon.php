@@ -7,6 +7,8 @@ class UMCloudflare_Pantheon
         if( class_exists( 'Pantheon_Cache' ) ) {
             add_filter( 'option_'. Pantheon_Cache::SLUG,         array( __CLASS__, 'overrideDefaultTTL' ) );
             add_filter( 'default_option_'. Pantheon_Cache::SLUG, array( __CLASS__, 'overrideDefaultTTL' ) );
+
+            // Handle Admin bar cache clear actions
             add_action( 'wp_ajax_umcloudflare_clear', function(){
                 $url = isset( $_POST['url'] ) ? $_POST['url'] : false;
 
@@ -15,7 +17,9 @@ class UMCloudflare_Pantheon
                 if( check_ajax_referer( 'umich-cloudflare-nonce', 'nonce', false ) ) {
                     switch( @$_POST['type'] ) {
                         case 'all':
-                            return self::_purge( true );
+                            // handled by the action (umich_cloudflare_purge_all)
+                            // return self::_purge( true );
+                            return true;
                             break;
 
                         case 'page':
@@ -23,12 +27,23 @@ class UMCloudflare_Pantheon
                             break;
 
                         case 'section':
-                            // unsupported by pantheon
+                            $keys = [];
+
+                            $path = @explode( '/', trim( parse_url( $url, PHP_URL_PATH ), '/' ), 2 )[0];
+
+                            if( $path ) {
+                                $keys = array_merge( $keys,
+                                    self::_multisiteKeys( ["section-{$path}"] )
+                                );
+                            }
+
+                            return self::_purgeKeys( $keys );
                             break;
                     }
                 }
             });
 
+            // purge part or whole cache
             add_action( 'umich_cloudflare_purge_all', function( $paths ){
                 foreach( $paths as $path ) {
                     if( strpos( $path, 'http' ) !== 0 ) {
@@ -52,7 +67,25 @@ class UMCloudflare_Pantheon
             add_action( 'pre_delete_term', array( __CLASS__, 'onTermUpdate' ) );
 
             /** HEADER: Surrogate-Keys **/
+            add_filter( 'pantheon_wp_main_query_surrogate_keys', function( $keys ){
+                global $post;
+
+                if( $post ) {
+                    // section based purge support
+                    $path = @explode( '/', trim( parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ), '/' ), 2 )[0];
+
+                    if( $path ) {
+                        $keys = array_merge( $keys,
+                            self::_multisiteKeys( ["section-{$path}"] )
+                        );
+                    }
+                }
+
+                return $keys;
+            });
             add_action( 'wp', function(){
+                global $post;
+
                 if( self::_isPantheonAdvancedActive() ) return;
 
                 $keys = [];
@@ -74,6 +107,7 @@ class UMCloudflare_Pantheon
                     }
                 }
 
+                $keys = apply_filters( 'pantheon_wp_main_query_surrogate_keys',    $keys );
                 $keys = apply_filters( 'umich_cloudflare_pantheon_surrogate_keys', $keys );
                 $keys = array_unique( $keys );
 
@@ -85,8 +119,6 @@ class UMCloudflare_Pantheon
             });
 
             /** ADMIN **/
-            add_filter( 'umich_cloudflare_menu_purge_section', '__return_false' );
-
             add_action( 'umich_cloudflare_admin_default_ttl_notes', function( $settings ){
                 echo '<br><em>This will override the <a href="https://github.com/pantheon-systems/pantheon-mu-plugin">Pantheon MU Plugin</a> Default TTL setting.</em>';
             });
@@ -97,6 +129,7 @@ class UMCloudflare_Pantheon
                 return $settings;
             });
 
+            // custom pantheon settings
             add_action( 'umich_cloudflare_admin_settings_page', function( $formSettings, $isNetwork ) {
                 $formSettings['pantheon'] = [
                     'ccworkflow' => false
@@ -122,16 +155,18 @@ class UMCloudflare_Pantheon
                 }
             }, 10, 2 );
 
+            // save pantheon settings
             add_action( 'umich_cloudflare_admin_settings_save', function( $settings, $hasErrors ){
                 if( $hasErrors ) {
                     return;
                 }
-
-
             }, 10, 2 );
         }
     }
 
+    /**
+     * Override Pantheon MU default_ttl with current request ttl
+     */
     static public function overrideDefaultTTL( $settings )
     {
         if( !is_admin() ) {
@@ -178,6 +213,12 @@ class UMCloudflare_Pantheon
         self::_purgeKeys( [ "term-{$termID}" ] );
     }
 
+    /**
+     * Call pantheon cache purge
+     *
+     * @param  string|bool $url URL to be purged, true for everything
+     * @return bool|WP_Error
+     */
     static private function _purge( $url )
     {
         if( $url === true ) {
@@ -200,8 +241,16 @@ class UMCloudflare_Pantheon
                 return new WP_Error( 'umich_cloudflare_pantheon_purge_paths', $e->getMessage() );
             }
         }
+
+        return true;
     }
 
+    /** 
+     * Call Pantheon key purge
+     *
+     * @param  string|array $keys Key(s) to be purged
+     * @return bool|WP_Error
+     */
     static private function _purgeKeys( $keys )
     {
         if( !$keys ) {
@@ -221,17 +270,30 @@ class UMCloudflare_Pantheon
         }
     }
 
+    /**
+     * Convert keys to multisite specific versions
+     *
+     * @param string|array $keys Keys to be sent
+     * @return array
+     */
     static private function _multisiteKeys( $keys )
     {
-        if( !$keys || !is_multisite() ) return;
-
         $keys = (array) $keys;
 
-        return array_map( function( $key ){
-            return 'blog-'. get_current_blog_id() .'-'. $key;
-        }, $keys );
+        if( $keys && is_multisite() ) {
+            $keys = array_map( function( $key ){
+                return 'blog-'. get_current_blog_id() .'-'. $key;
+            }, $keys );
+        }
+
+        return $keys;
     }
 
+    /**
+     * Checks if Pantheon Advanced Page Cache plugin is enabled
+     *
+     * @return bool
+     */
     static private function _isPantheonAdvancedActive()
     {
         return is_plugin_active( 'pantheon-advanced-page-cache/pantheon-advanced-page-cache.php' );
