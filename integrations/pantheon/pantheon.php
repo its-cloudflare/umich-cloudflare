@@ -193,7 +193,7 @@ class UMCloudflare_Pantheon
             $purgeKeys[] = "archive-{$post->post_type}";
 
             foreach( get_object_taxonomies( $post ) as $tax ) {
-                $purgeKeys[] = "term-{$tax->name}";
+                $purgeKeys[] = "term-{$tax}";
 
                 foreach( (get_the_terms( $pID, $tax ) ?: array()) as $term ) {
                     $purgeKeys[] = "term-{$term->term_id}";
