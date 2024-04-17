@@ -3,14 +3,16 @@
  * Plugin Name: U-M: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 0.0.3
- * Author: U-M: Digital
+ * Version: 1.0.0
+ * Author: U-M: OVPC Digital
  * Author URI: http://vpcomm.umich.edu
+ * Update URI: https://github.com/its-cloudflare/umich-cloudflare/releases/latest
  */
 
 define( 'UMCLOUDFLARE_PATH', dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
 
 include UMCLOUDFLARE_PATH .'includes'. DIRECTORY_SEPARATOR .'override.php';
+include UMCLOUDFLARE_PATH .'includes'. DIRECTORY_SEPARATOR .'umich-github-updater.php';
 
 // pantheon integrations
 if( isset( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
@@ -19,6 +21,14 @@ if( isset( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
 
 class UMCloudflare
 {
+    static private $_githubConfig     = [
+        'repo' => 'its-cloudflare/umich-cloudflare',
+        'base' => [
+            'api' => 'https://api.github.com/repos/',
+            'main' => 'https://github.com/'
+        ]
+    ];
+
     static private $_defaultTTL       = 7200;
     static private $_defaultStaticTTL = 31536000;
 
@@ -46,38 +56,11 @@ class UMCloudflare
 
     static public function init()
     {
-        if( !class_exists( 'WP_GitHub_Updater' ) ) {
-            include_once UMCLOUDFLARE_PATH .'includes'. DIRECTORY_SEPARATOR .'updater.php';
-        }
-        if( isset( $_GET['force-check'] ) && $_GET['force-check'] && !defined( 'WP_GITHUB_FORCE_UPDATE' ) ) {
-            define( 'WP_GITHUB_FORCE_UPDATE', true );
-        }
-        if( is_admin() ) {
-            new WP_GitHub_Updater(array(
-                // this is the slug of your plugin
-                'slug' => plugin_basename(__FILE__),
-                // this is the name of the folder your plugin lives in
-                'proper_folder_name' => dirname( plugin_basename( __FILE__ ) ),
-                // the github API url of your github repo
-                'api_url' => 'https://api.github.com/repos/its-cloudflare/umich-cloudflare',
-                // the github raw url of your github repo
-                'raw_url' => 'https://raw.githubusercontent.com/its-cloudflare/umich-cloudflare/main',
-                // the github url of your github repo
-                'github_url' => 'https://github.com/its-cloudflare/umich-cloudflare',
-                 // the zip url of the github repo
-                'zip_url' => 'https://github.com/its-cloudflare/umich-cloudflare/zipball/main',
-                // wether WP should check the validity of the SSL cert when getting an update, see https://github.com/jkudish/WordPress-GitHub-Plugin-Updater/issues/2 and https://github.com/jkudish/WordPress-GitHub-Plugin-Updater/issues/4 for details
-                'sslverify' => true,
-                // which version of WordPress does your plugin require?
-                'requires' => '6.0',
-                // which version of WordPress is your plugin tested up to?
-                'tested' => '6.4.3',
-                // which file to use as the readme for the version number
-                'readme' => 'README.md',
-                // Access private repositories by authorizing under Appearance > Github Updates when this example plugin is installed
-                'access_token' => '',
-            ));
-        }
+        // Initialize Github Updater
+        new \Umich\GithubUpdater\Init([
+            'repo' => 'its-cloudflare/umich-cloudflare',
+            'slug' => plugin_basename( __FILE__ ),
+        ]);
 
         add_action( 'init', function(){
             // IF LOGGED IN COOKIE AND COOKIE STALE (not logged in), LOGOUT
@@ -182,6 +165,25 @@ class UMCloudflare
                 self::adminMenu( true );
             });
         }
+
+        // plugin links
+        add_filter( 'plugin_row_meta', function( $links, $pluginFile ){
+            if( $pluginFile == plugin_basename( __FILE__ ) ) {
+                $links[] = '<a href="https://github.com/its-cloudflare/umich-cloudflare/issues" target="_blank" title="'. esc_attr__( 'Support', 'umich-cloudflare' ) .'">'. esc_html__( 'Support', 'umich-cloudflare' ) .'</a>';
+            }
+
+            return $links;
+        }, 10, 2 );
+
+        add_filter( 'plugin_action_links_'. plugin_basename( __FILE__ ), function( $links ){
+            $links[] = '<a href="'. admin_url( 'options-general.php?page=umich_cloudflare' ) .'">Settings</a>';
+            return $links;
+        });
+
+        add_filter( 'network_admin_plugin_action_links_'. plugin_basename( __FILE__ ), function( $links ){
+            $links[] = '<a href="'. network_admin_url( 'settings.php?page=umich_cloudflare' ) .'">Settings</a>';
+            return $links;
+        });
 
         // get cloudflare zones for apikey
         add_action( 'wp_ajax_umcloudflare_zones', function(){
@@ -415,7 +417,7 @@ class UMCloudflare
         $res = self::_callAPI(
             '/zones/'. self::$_settings['zone'] .'/purge_cache',
             'POST',
-            json_encode( $params ) 
+            json_encode( $params )
         );
 
         json_decode( $res );
@@ -730,7 +732,7 @@ class UMCloudflare
                 if( $isNetwork ) {
                     self::$_networkSettings = array_merge(
                         self::$_networkSettings,
-                        $settings 
+                        $settings
                     );
                 }
                 else {
