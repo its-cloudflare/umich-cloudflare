@@ -79,6 +79,21 @@ namespace Umich\GithubUpdater\v1d0d0 {
                 );
             }
 
+            add_filter( 'upgrader_post_install', function( $true, $extra, $result ){
+                global $wp_filesystem;
+
+                $newDest = WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . dirname( $this->options['slug'] );
+
+                $wp_filesystem->move( $result['destination'], $newDest );
+
+                $result['destination'] = $newDest;
+
+                activate_plugin( WP_PLUGIN_DIR . $this->_options['slug'] );
+
+                return $result;
+            }, 10, 3 );
+
+
             /** WORDPRESS HOOKS **/
             // Update Check
             add_filter( 'update_plugins_github.com', function( $update, $pluginData, $pluginFile ){
@@ -111,6 +126,9 @@ namespace Umich\GithubUpdater\v1d0d0 {
 
                 if( $release && $repoInfo && $pluginData ) {
                     $wpConfig = $this->_callAPI( "contents/{$this->_options['config']}?ref={$release->tag_name}");
+                    if( $wpConfig && isset( $wpConfig->content ) ) {
+                        $wpConfig = json_decode( base64_decode( $wpConfig->content ) );
+                    }
 
                     if( $wpConfig ) {
                         foreach( [ 'description', 'changelog' ] as $key ) {
