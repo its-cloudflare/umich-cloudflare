@@ -108,6 +108,12 @@ namespace Umich\GithubUpdater\v1d0d0 {
                             'url'     => $this->_githubBase['main'] . $this->_options['repo'] .'/releases/latest',
                             'package' => $release->zipball_url
                         ];
+
+                        foreach( $release->assets as $asset ) {
+                            if( $asset->name == basename( $this->_options['repo'] ) ."-{$release->tag_name}.zip" ) {
+                                $update['package'] = $asset->browser_download_url;
+                            }
+                        }
                     }
                 }
 
@@ -164,6 +170,12 @@ namespace Umich\GithubUpdater\v1d0d0 {
                             'high' => '', // image link large (1500x500)
                         ]
                     ];
+
+                    foreach( $release->assets as $asset ) {
+                        if( $asset->name == basename( $this->_options['repo'] ) ."-{$release->tag_name}.zip" ) {
+                            $return->download_link = $asset->browser_download_url;
+                        }
+                    }
 
                     if( $wpConfig ) {
                         foreach( array( 'requires', 'tested', 'requires_php', 'banners:low', 'banners:high' ) as $key ) {
