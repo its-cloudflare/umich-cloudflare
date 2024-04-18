@@ -1,8 +1,28 @@
 U-M Cloudflare Cache Purge Manager
 ===================================
+[![GitHub release](https://img.shields.io/github/release/its-cloudflare/umich-cloudflare.svg)](https://github.com/its-cloudflare/umich-cloudflare/releases/latest)
+[![GitHub issues](https://img.shields.io/github/issues/its-cloudflare/umich-cloudflare.svg)](https://github.com/its-cloudflare/umich-cloudflare/issues)
+
 Provides easy and automatic ability to purge cloudflare cache for your whole site, section, or a page.  Also adds metabox to override TTL and Disable cache for a specific page/post/cpt.
 
 This requires that you have an existing CloudFlare API key.
+
+## Install
+### WP Admin/Dashboard Method
+*This requires that your site has write access to the plugins folder.*
+1. Download the [latest package](https://github.com/its-cloudflare/umich-cloudflare/releases/latest) *(e.g. umich-cloudflare-x.x.x.zip)*
+2. Go to WP Admin/Dashboard -> Plugins -> Add New -> Upload Plugin
+3. Select the downloaded zip file and Upload
+4. Activate Plugin
+5. Configure plugin settings (WP Admin/Dashboard -> Settings -> U-M: Cloudlfare
+6. Add your API Key (Provided by ITS or your units Cloudflare manager)
+### Manual Method
+1. Download the [latest package](https://github.com/its-cloudflare/umich-cloudflare/releases/latest) *(e.g. umich-cloudflare-x.x.x.zip)*
+2. Extract zip
+3. Upload the *umich-cloudflare* folder to *wp-content/plugins/* folder in your site
+4. Activate Plugin
+5. Configure plugin settings (WP Admin/Dashboard -> Settings -> U-M: Cloudlfare
+6. Add your API Key (Provided by ITS or your units Cloudflare manager)
 
 ### Filters
 **umich_cloudflare_settings**
