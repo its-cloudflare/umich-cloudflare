@@ -21,14 +21,6 @@ if( isset( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
 
 class UMCloudflare
 {
-    static private $_githubConfig     = [
-        'repo' => 'its-cloudflare/umich-cloudflare',
-        'base' => [
-            'api' => 'https://api.github.com/repos/',
-            'main' => 'https://github.com/'
-        ]
-    ];
-
     static private $_defaultTTL       = 7200;
     static private $_defaultStaticTTL = 31536000;
 
