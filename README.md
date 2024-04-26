@@ -24,6 +24,7 @@ This requires that you have an existing CloudFlare API key.
 5. Configure plugin settings (WP Admin/Dashboard -> Settings -> U-M: Cloudlfare
 6. Add your API Key (Provided by ITS or your units Cloudflare manager)
 
+## Integrations
 ### Filters
 **umich_cloudflare_settings**
 
