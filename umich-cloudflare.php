@@ -3,7 +3,7 @@
  * Plugin Name: U-M: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: U-M: OVPC Digital
  * Author URI: http://vpcomm.umich.edu
  * Update URI: https://github.com/its-cloudflare/umich-cloudflare/releases/latest
@@ -12,7 +12,6 @@
 define( 'UMCLOUDFLARE_PATH', dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
 
 include UMCLOUDFLARE_PATH .'includes'. DIRECTORY_SEPARATOR .'override.php';
-include UMCLOUDFLARE_PATH .'includes'. DIRECTORY_SEPARATOR .'umich-github-updater.php';
 
 // pantheon integrations
 if( isset( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
@@ -48,11 +47,24 @@ class UMCloudflare
 
     static public function init()
     {
+        // load updater library
+        if( file_exists( UMCLOUDFLARE_PATH . implode( DIRECTORY_SEPARATOR, [ 'vendor', 'umdigital', 'wordpress-github-updater', 'github-updater.php' ] ) ) ) {
+            include UMCLOUDFLARE_PATH . implode( DIRECTORY_SEPARATOR, [ 'vendor', 'umdigital', 'wordpress-github-updater', 'github-updater.php' ] );
+        }
+
         // Initialize Github Updater
-        new \Umich\GithubUpdater\Init([
-            'repo' => 'its-cloudflare/umich-cloudflare',
-            'slug' => plugin_basename( __FILE__ ),
-        ]);
+        if( class_exists( '\Umich\GithubUpdater\Init' ) ) {
+            new \Umich\GithubUpdater\Init([
+                'repo' => 'its-cloudflare/umich-cloudflare',
+                'slug' => plugin_basename( __FILE__ ),
+            ]);
+        }
+        // Show error upon failure
+        else {
+            add_action( 'admin_notices', function(){
+                echo '<div class="error notice"><h3>WARNING</h3><p>U-M: Cloudflare plugin is currently unable to check for updates due to a missing dependency.  Please <a href="https://github.com/its-cloudflare/umich-cloudflare">reinstall the plugin</a>.</p></div>';
+            });
+        }
 
         add_action( 'init', function(){
             // IF LOGGED IN COOKIE AND COOKIE STALE (not logged in), LOGOUT
