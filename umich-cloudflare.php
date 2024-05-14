@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: U-M: Cloudflare Cache
+ * Plugin Name: University of Michigan: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
  * Version: 1.0.1
