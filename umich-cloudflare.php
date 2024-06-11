@@ -3,7 +3,7 @@
  * Plugin Name: University of Michigan: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: U-M: OVPC Digital
  * Author URI: http://vpcomm.umich.edu
  * Update URI: https://github.com/its-cloudflare/umich-cloudflare/releases/latest
@@ -146,7 +146,6 @@ class UMCloudflare
                 // override if we have a ttl we wish to set
                 if( is_numeric( $requestTTL ) ) {
                     $headers['Cache-Control'] = "public, max-age={$requestTTL}";
-                    $headers['X-Cache-Control'] = "public, max-age={$requestTTL}";
                 }
             }
 
@@ -638,7 +637,7 @@ class UMCloudflare
                 $umCFFormSettings['multisite']['apioverride'] = true;
             }
         }
-        else if( is_multisite() && (!defined( 'SUBDOMAIN_INSTALL' ) || !SUBDOMAIN_INSTALL || !$umCFSettings['multisite']['override']) ) {
+        else if( is_multisite() && (!defined( 'SUBDOMAIN_INSTALL' ) || !SUBDOMAIN_INSTALL || !$umCFFormSettings['multisite']['apioverride']) ) {
             $umCFFormSettings['apikey']     = false;
             $umCFFormSettings['zone']       = false;
             $umCFFormSettings['ttl_static'] = false;
