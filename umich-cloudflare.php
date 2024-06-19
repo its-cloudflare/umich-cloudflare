@@ -633,25 +633,15 @@ class UMCloudflare
             'ttl'         => true,
             'ttl_browser' => true,
             'ttl_static'  => true,
-            'multisite'   => [
-                'apioverride' => false
-            ]
         ];
 
-        if( $isNetwork ) {
-            if( defined( 'SUBDOMAIN_INSTALL' ) && SUBDOMAIN_INSTALL ) {
-                $umCFFormSettings['multisite']['apioverride'] = true;
-            }
-        }
-        else if( is_multisite() && (!defined( 'SUBDOMAIN_INSTALL' ) || !SUBDOMAIN_INSTALL || !$umCFFormSettings['multisite']['apioverride']) ) {
+        if( !$isNetwork && is_multisite() ) {
             $umCFFormSettings['apikey']      = false;
             $umCFFormSettings['zone']        = false;
-            $umCFFormSettings['ttl_browser'] = false;
             $umCFFormSettings['ttl_static']  = false;
         }
 
         if( !file_exists( ABSPATH .'.htaccess' ) ) {
-            $umCFFormSettings['ttl_browser'] = false;
             $umCFFormSettings['ttl_static']  = false;
         }
 
