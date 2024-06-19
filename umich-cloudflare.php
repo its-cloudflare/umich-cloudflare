@@ -20,29 +20,33 @@ if( isset( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
 
 class UMCloudflare
 {
-    static private $_defaultTTL       = 7200;
-    static private $_defaultStaticTTL = 31536000;
+    static private $_defaultTTL        = 7200;
+    static private $_defaultBrowserTTL = 0;
+    static private $_defaultStaticTTL  = 31536000;
 
     static private $_settings = array(
-        'apibase'    => 'https://api.cloudflare.com/client/v4/',
-        'apikey'     => '',
-        'zone'       => '',
-        'ttl'        => '',
-        'ttl_static' => '',
+        'apibase'     => 'https://api.cloudflare.com/client/v4/',
+        'apikey'      => '',
+        'zone'        => '',
+        'ttl'         => '',
+        'ttl_browser' => '',
+        'ttl_static'  => '',
     );
 
     static private $_siteSettings = [
-        'apikey'     => '',
-        'zone'       => '',
-        'ttl'        => '',
-        'ttl_static' => '',
+        'apikey'      => '',
+        'zone'        => '',
+        'ttl'         => '',
+        'ttl_browser' => '',
+        'ttl_static'  => '',
     ];
 
     static private $_networkSettings = [
-        'apikey'     => '',
-        'zone'       => '',
-        'ttl'        => '',
-        'ttl_static' => '',
+        'apikey'      => '',
+        'zone'        => '',
+        'ttl'         => '',
+        'ttl_browser' => '',
+        'ttl_static'  => '',
     ];
 
     static public function init()
@@ -142,10 +146,11 @@ class UMCloudflare
             // skip if logged in
             if( !is_user_logged_in() ) {
                 $requestTTL = self::getRequestTTL();
+                $browserTTL = (self::$_settings['ttl_browser'] ?: self::$_defaultBrowserTTL);
 
                 // override if we have a ttl we wish to set
                 if( is_numeric( $requestTTL ) ) {
-                    $headers['Cache-Control'] = "public, max-age={$requestTTL}";
+                    $headers['Cache-Control'] = "public, max-age={$browserTTL}, s-maxage={$requestTTL}";
                 }
             }
 
@@ -623,11 +628,12 @@ class UMCloudflare
     static public function adminMenu( $isNetwork = false )
     {
         $umCFFormSettings = [
-            'apikey'     => true,
-            'zone'       => true,
-            'ttl'        => true,
-            'ttl_static' => true,
-            'multisite' => [
+            'apikey'      => true,
+            'zone'        => true,
+            'ttl'         => true,
+            'ttl_browser' => true,
+            'ttl_static'  => true,
+            'multisite'   => [
                 'apioverride' => false
             ]
         ];
@@ -638,13 +644,15 @@ class UMCloudflare
             }
         }
         else if( is_multisite() && (!defined( 'SUBDOMAIN_INSTALL' ) || !SUBDOMAIN_INSTALL || !$umCFFormSettings['multisite']['apioverride']) ) {
-            $umCFFormSettings['apikey']     = false;
-            $umCFFormSettings['zone']       = false;
-            $umCFFormSettings['ttl_static'] = false;
+            $umCFFormSettings['apikey']      = false;
+            $umCFFormSettings['zone']        = false;
+            $umCFFormSettings['ttl_browser'] = false;
+            $umCFFormSettings['ttl_static']  = false;
         }
 
         if( !file_exists( ABSPATH .'.htaccess' ) ) {
-            $umCFFormSettings['ttl_static'] = false;
+            $umCFFormSettings['ttl_browser'] = false;
+            $umCFFormSettings['ttl_static']  = false;
         }
 
         $umCFFormSettings = apply_filters( 'umich_cloudflare_admin_form_settings', $umCFFormSettings );
@@ -652,16 +660,18 @@ class UMCloudflare
         // HANDLE FORM SAVE
         if( $_POST && isset( $_POST['umich_cloudflare_nonce'] ) && wp_verify_nonce( $_POST['umich_cloudflare_nonce'], 'umich-cloudflare' ) ) {
             $settings = array_merge([
-                    'apikey'     => '',
-                    'zone'       => '',
-                    'ttl'        => '',
-                    'ttl_static' => '',
+                    'apikey'      => '',
+                    'zone'        => '',
+                    'ttl'         => '',
+                    'ttl_browser' => '',
+                    'ttl_static'  => '',
                 ],
                 array_filter( $_POST['umich_cloudflare_settings'] ?: array(), 'trim' )
             );
 
-            $settings['ttl']        = $settings['ttl']        ? (int) $settings['ttl']        : '';
-            $settings['ttl_static'] = $settings['ttl_static'] ? (int) $settings['ttl_static'] : '';
+            $settings['ttl']         = $settings['ttl']         ? (int) $settings['ttl']         : '';
+            $settings['ttl_browser'] = $settings['ttl_browser'] ? (int) $settings['ttl_browser'] : '';
+            $settings['ttl_static']  = $settings['ttl_static']  ? (int) $settings['ttl_static']  : '';
 
             // validate apikey, zone, and ttl
             $hasErrors = false;
@@ -698,6 +708,17 @@ class UMCloudflare
                     'umich_cloudflare_settings_ttl',
                     'error',
                     'Invalid Default Page TTL value.',
+                    'error',
+                );
+            }
+
+            if( $settings['ttl_browser'] && !is_int( $settings['ttl_browser'] ) ) {
+                $hasErrors = true;
+
+                add_settings_error(
+                    'umich_cloudflare_settings_ttl_browser',
+                    'error',
+                    'Invalid Default Browser TTL value.',
                     'error',
                 );
             }
@@ -778,30 +799,34 @@ class UMCloudflare
                 // get network or site specific settings
                 if( $isNetwork ) {
                     $umCFSettings = array_merge([
-                            'apikey'     => '',
-                            'zone'       => '',
-                            'ttl'        => '',
-                            'ttl_static' => '',
+                            'apikey'      => '',
+                            'zone'        => '',
+                            'ttl'         => '',
+                            'ttl_browser' => '',
+                            'ttl_static'  => '',
                         ],
                         self::$_networkSettings
                     );
 
-                    $umCFSettings['default_ttl']        = self::$_defaultTTL;
-                    $umCFSettings['default_ttl_static'] = self::$_defaultStaticTTL;
+                    $umCFSettings['default_ttl']         = self::$_defaultTTL;
+                    $umCFSettings['default_ttl_browser'] = self::$_defaultBrowserTTL;
+                    $umCFSettings['default_ttl_static']  = self::$_defaultStaticTTL;
                 }
                 else {
                     // get just the sites settings
                     $umCFSettings = array_merge([
-                            'apikey'     => '',
-                            'zone'       => '',
-                            'ttl'        => '',
-                            'ttl_static' => '',
+                            'apikey'      => '',
+                            'zone'        => '',
+                            'ttl'         => '',
+                            'ttl_browser' => '',
+                            'ttl_static'  => '',
                         ],
                         self::$_siteSettings
                     );
 
-                    $umCFSettings['default_ttl']        = is_multisite() && self::$_networkSettings['ttl']        ? self::$_networkSettings['ttl']        : self::$_defaultTTL;
-                    $umCFSettings['default_ttl_static'] = is_multisite() && self::$_networkSettings['ttl_static'] ? self::$_networkSettings['ttl_static'] : self::$_defaultStaticTTL;
+                    $umCFSettings['default_ttl']         = is_multisite() && self::$_networkSettings['ttl']         ? self::$_networkSettings['ttl']         : self::$_defaultTTL;
+                    $umCFSettings['default_ttl_browser'] = is_multisite() && self::$_networkSettings['ttl_browser'] ? self::$_networkSettings['ttl_browser'] : self::$_defaultBrowserTTL;
+                    $umCFSettings['default_ttl_static']  = is_multisite() && self::$_networkSettings['ttl_static']  ? self::$_networkSettings['ttl_static']  : self::$_defaultStaticTTL;
                 }
 
                 if( $umCFFormSettings['zone'] && $umCFSettings['apikey'] ) {

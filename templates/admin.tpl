@@ -33,7 +33,18 @@
                 <td>
                     <input type="number" id="umcf-ttl" name="umich_cloudflare_settings[ttl]" value="<?=esc_attr( $umCFSettings['ttl'] );?>" placeholder="Enter Time in Seconds" class="regular-text" aria-describedby="umcf-ttl-description" />
                     <br/>
-                    <p class="description" id="umcf-ttl-description">Max amount of time (in seconds) to hold page in cache. Default <?=$umCFSettings['default_ttl'];?> seconds.<?php do_action( 'umich_cloudflare_admin_default_ttl_notes', $umCFSettings );?></p>
+                    <p class="description" id="umcf-ttl-description">Max amount of time (in seconds) to hold page in the <abbr title="Content Delivery Network">CDN</abbr> cache. Default <?=$umCFSettings['default_ttl'];?> seconds.<?php do_action( 'umich_cloudflare_admin_default_ttl_notes', $umCFSettings );?></p>
+                </td>
+            </tr>
+            <?php endif; ?>
+
+            <?php if( $umCFFormSettings['ttl_browser'] ): ?>
+            <tr valign="top">
+                <th scope="row"><label for="umcf-ttl_browser">Default Browser <abbr title="Time to live">TTL</abbr></label></th>
+                <td>
+                    <input type="number" id="umcf-ttl_browser" name="umich_cloudflare_settings[ttl_browser]" value="<?=esc_attr( $umCFSettings['ttl_browser'] );?>" placeholder="Enter Time in Seconds" class="regular-text" aria-describedby="umcf-ttl_browser-description" />
+                    <br/>
+                    <p class="description" id="umcf-ttl_browser-description">Max amount of time (in seconds) to hold page in the browsers cache. Default <?=$umCFSettings['default_ttl_browser'];?> seconds.</p>
                 </td>
             </tr>
             <?php endif; ?>
