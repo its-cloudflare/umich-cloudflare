@@ -3,7 +3,7 @@
  * Plugin Name: University of Michigan: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: U-M: OVPC Digital
  * Author URI: http://vpcomm.umich.edu
  * Update URI: https://github.com/its-cloudflare/umich-cloudflare/releases/latest

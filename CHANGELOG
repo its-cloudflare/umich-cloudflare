@@ -1,3 +1,8 @@
+1.0.3 (2024-06-19)
+==================
+new admin option for browser ttl
+update cache-control header to use max-age and s-maxage
+
 1.0.2 (2024-06-11)
 ==================
 bugfix on multisite
