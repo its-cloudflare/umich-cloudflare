@@ -24,7 +24,7 @@ This requires that you have an existing CloudFlare API key.
 5. Configure plugin settings (WP Admin/Dashboard -> Settings -> U-M: Cloudlfare
 6. Add your API Key (Provided by ITS or your units Cloudflare manager)
 
-## Integrations
+## Custom Integrations
 ### Filters
 **umich_cloudflare_settings**
 
@@ -56,11 +56,11 @@ add_filter( 'umich_cloudflare_menu_purge_section', '__return_false' );
 Customize which settings should be available for management.  Useful in complex wordpress environments.
 ```
 add_filter('umich_cloudflare_admin_form_settings', function( $settings ){
-    $settings['apikey']                   = false;
-    $settings['zone']                     = false;
-    $settings['ttl']                      = false;
-    $settings['ttl_static']               = false;
-    $settings['multisite']['apioverride'] = true;
+    $settings['apikey']      = false;
+    $settings['zone']        = false;
+    $settings['ttl']         = false;
+    $settings['ttl_browser'] = false;
+    $settings['ttl_static']  = false;
     return $settings;
 });
 ```
