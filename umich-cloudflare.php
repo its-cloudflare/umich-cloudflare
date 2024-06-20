@@ -24,14 +24,14 @@ class UMCloudflare
     static private $_defaultBrowserTTL = 0;
     static private $_defaultStaticTTL  = 31536000;
 
-    static private $_settings = array(
+    static private $_settings = [
         'apibase'     => 'https://api.cloudflare.com/client/v4/',
         'apikey'      => '',
         'zone'        => '',
         'ttl'         => '',
         'ttl_browser' => '',
         'ttl_static'  => '',
-    );
+    ];
 
     static private $_siteSettings = [
         'apikey'      => '',
@@ -304,38 +304,45 @@ class UMCloudflare
         // Stop the script when doing autosave
         if( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
 
+        $urls = [];
+
         // handle attachment logic
         if( $post && @$post->post_type == 'attachment' ) {
-            $url = wp_get_attachment_url( $pID );
-            self::purgePage( $url );
+            $urls[] = wp_get_attachment_url( $pID );
 
             // purge any resized version
             $meta = wp_get_attachment_metadata( $pID );
             foreach( (@$meta['sizes'] ?: array()) as $size ) {
-                self::purgePage(
-                    str_replace(
-                        basename( parse_url( $url, PHP_URL_PATH ) ),
-                        $size['file'],
-                        $url
-                    )
+                $urls[] = str_replace(
+                    basename( parse_url( $url, PHP_URL_PATH ) ),
+                    $size['file'],
+                    $url
                 );
             }
         }
 
         // PURGE POST URL
-        self::purgePage( get_the_permalink( $pID ) );
+        $urls[] = get_the_permalink( $pID );
+        self::purgePage( $urls );
 
         if( $post ) {
+            $urls = [];
+
             // Purge post type archive
             if( $pArchiveUrl = get_post_type_archive_link( $post->post_type ) ) {
-                self::purgeAll( $pArchiveUrl );
+                $urls[] = $pArchiveUrl;
             }
 
             // Purge taxonomy archives
             foreach( get_object_taxonomies( $post ) as $tax ) {
                 foreach( (get_the_terms( $pID, $tax ) ?: array()) as $term ) {
-                    self::purgeAll( get_term_link( $term->term_id ) );
+                    $urls[] = get_term_link( $term->term_id );
                 }
+            }
+
+            // purge type/taxonomy urls
+            if( $urls ) {
+                self::purgeAll( $urls );
             }
         }
     }
@@ -343,9 +350,7 @@ class UMCloudflare
     static public function onCommentUpdate( $cID )
     {
         if( $comment = get_comment( $cID ) ) {
-            $post = get_post( $comment->comment_post_ID );
-
-            self::onPostUpdate( $comment->comment_post_ID, $post );
+            self::purgeAll( get_the_permalink( $comment->comment_post_ID ) );
         }
     }
 
