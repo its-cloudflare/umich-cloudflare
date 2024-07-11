@@ -1,3 +1,10 @@
+1.0.4 (2024-07-11)
+==================
+Resolves Issue #1
+Disable pantheon cache-control header code
+Pantheon cache purge bugfixes
+Pantheon integration no longer requires pantheon-mu-plugin
+
 1.0.3 (2024-06-19)
 ==================
 new admin option for browser ttl
