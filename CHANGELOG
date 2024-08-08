@@ -1,3 +1,9 @@
+1.0.5 (2024-08-08)
+==================
+Resolves Issues #2 & #3
+- fix not purging alternate media sizes
+- fix syntax error
+
 1.0.4 (2024-07-11)
 ==================
 Resolves Issue #1

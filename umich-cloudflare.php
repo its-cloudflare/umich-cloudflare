@@ -3,7 +3,7 @@
  * Plugin Name: University of Michigan: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 1.0.4
+ * Version: 1.0.5
  * Author: U-M: OVPC Digital
  * Author URI: http://vpcomm.umich.edu
  * Update URI: https://github.com/its-cloudflare/umich-cloudflare/releases/latest
@@ -312,12 +312,12 @@ class UMCloudflare
 
             // purge any resized version
             $meta = wp_get_attachment_metadata( $pID );
-            foreach( (@$meta['sizes'] ?: array()) as $size ) {
-                $urls[] = str_replace(
-                    basename( parse_url( $url, PHP_URL_PATH ) ),
-                    $size['file'],
-                    $url
-                );
+            foreach( (@$meta['sizes'] ?: array()) as $size => $sInfo ) {
+                $src = wp_get_attachment_image_src( $pID, $size );
+
+                if( $src && is_array( $src ) && filter_var( $src[0], FILTER_VALIDATE_URL ) ) {
+                    $urls[] = $src[0];
+                }
             }
         }
 
@@ -679,7 +679,7 @@ class UMCloudflare
                     'umich_cloudflare_settings_apikey',
                     'error',
                     implode( ', ', $thisErrors ),
-                    'error',
+                    'error'
                 );
             }
 
@@ -691,7 +691,7 @@ class UMCloudflare
                     'umich_cloudflare_settings_zone',
                     'error',
                     implode( ', ', $thisErrors ),
-                    'error',
+                    'error'
                 );
             }
 
@@ -703,7 +703,7 @@ class UMCloudflare
                     'umich_cloudflare_settings_ttl',
                     'error',
                     'Invalid Default Page TTL value.',
-                    'error',
+                    'error'
                 );
             }
 
@@ -714,7 +714,7 @@ class UMCloudflare
                     'umich_cloudflare_settings_ttl_browser',
                     'error',
                     'Invalid Default Browser TTL value.',
-                    'error',
+                    'error'
                 );
             }
 
@@ -725,7 +725,7 @@ class UMCloudflare
                     'umich_cloudflare_settings_ttl_static',
                     'error',
                     'Invalid Default Static TTL value.',
-                    'error',
+                    'error'
                 );
             }
 
