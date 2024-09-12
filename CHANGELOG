@@ -1,3 +1,8 @@
+1.0.6 (2024-09-12)
+==================
+Resolves Issue #5
+- fix page disable cache option fatal error
+
 1.0.5 (2024-08-08)
 ==================
 Resolves Issues #2 & #3

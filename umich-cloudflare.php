@@ -3,7 +3,7 @@
  * Plugin Name: University of Michigan: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: U-M: OVPC Digital
  * Author URI: http://vpcomm.umich.edu
  * Update URI: https://github.com/its-cloudflare/umich-cloudflare/releases/latest
@@ -150,7 +150,12 @@ class UMCloudflare
 
                 // override if we have a ttl we wish to set
                 if( is_numeric( $requestTTL ) ) {
-                    $headers['Cache-Control'] = "public, max-age={$browserTTL}, s-maxage={$requestTTL}";
+                    if( !$requestTTL ) {
+                        $headers = array_merge( $headers, wp_get_nocache_headers() );
+                    }
+                    else {
+                        $headers['Cache-Control'] = "public, max-age={$browserTTL}, s-maxage={$requestTTL}";
+                    }
                 }
             }
 
@@ -279,8 +284,7 @@ class UMCloudflare
         // use post specific settings if exists
         if( $post && $post instanceof WP_Post ) {
             if( $status = get_post_meta( $post->ID, 'umcloudflare_disable', true ) ) {
-                $headers    = array_merge( $headers, wp_get_nocache_headers() );
-                $requestTTL = null;
+                $requestTTL = 0;
             }
             else if( is_numeric( $ttl = get_post_meta( $post->ID, 'umcloudflare_ttl', true ) ) ) {
                 $requestTTL = $ttl;
