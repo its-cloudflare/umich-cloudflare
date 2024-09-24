@@ -1,5 +1,28 @@
 {
+    "name": "its-cloudflare/umich-cloudflare",
+    "description": "Provides easy and automatic ability to purge cloudflare cache for your whole site, section, or a page.",
+    "homepage": "https://github.com/its-cloudflare/umich-cloudflare",
+    "license": [ "MIT" ],
+    "type": "wordpress-plugin",
+    "keywords": [
+        "wordpress",
+        "cloudflare"
+    ],
+    "authors": [
+        {
+            "name": "Patrick Springstubbe",
+            "homepage": "https://github.com/nobleclem"
+        }
+    ],
+    "support": {
+        "docs": "https://github.com/its-cloudflare/umich-cloudflare",
+        "issues": "https://github.com/its-cloudflare/umich-cloudflare/issues",
+        "source": "https://github.com/its-cloudflare/umich-cloudflare"
+    },
     "require": {
+        "php": ">=7.4",
         "umdigital/wordpress-github-updater": "^1.0"
-    }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

@@ -1,3 +1,7 @@
+1.0.7 (2024-09-24)
+==================
+Remove TEST_COOKIE if not logged in
+
 1.0.6 (2024-09-12)
 ==================
 Resolves Issue #5

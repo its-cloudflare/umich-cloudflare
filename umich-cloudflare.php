@@ -3,7 +3,7 @@
  * Plugin Name: University of Michigan: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 1.0.6
+ * Version: 1.0.7
  * Author: U-M: OVPC Digital
  * Author URI: http://vpcomm.umich.edu
  * Update URI: https://github.com/its-cloudflare/umich-cloudflare/releases/latest
@@ -81,6 +81,12 @@ class UMCloudflare
                 setcookie( TEST_COOKIE, '', -3600, SITECOOKIEPATH, COOKIE_DOMAIN );
                 wp_logout();
 
+                wp_redirect( $_SERVER['REQUEST_URI'] );
+                exit;
+            }
+            // NOT LOGGED IN AND HAS TEST COOKIE (remove test cookie)
+            else if( !isset( $_COOKIE[ LOGGED_IN_COOKIE ] ) && isset( $_COOKIE[ TEST_COOKIE ] ) ) {
+                setcookie( TEST_COOKIE, '', -3600, SITECOOKIEPATH, COOKIE_DOMAIN );
                 wp_redirect( $_SERVER['REQUEST_URI'] );
                 exit;
             }
