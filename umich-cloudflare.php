@@ -3,7 +3,7 @@
  * Plugin Name: University of Michigan: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 1.0.8
+ * Version: 1.0.9
  * Author: U-M: OVPC Digital
  * Author URI: http://vpcomm.umich.edu
  * Update URI: https://github.com/its-cloudflare/umich-cloudflare/releases/latest
@@ -593,7 +593,7 @@ class UMCloudflare
         }
 
         if( self::$_settings['apikey'] && self::$_settings['zone'] ) {
-            if( current_user_can( 'administrator' ) ) {
+            if( current_user_can( 'administrator' ) || current_user_can( 'editor' ) ) {
                 $wp_admin_bar->add_menu(array(
                     'parent' => 'umich-cloudflare-root',
                     'id'     => 'umich-cloudflare-purge-site',
@@ -603,31 +603,31 @@ class UMCloudflare
                         'onclick' => 'return umCloudflarePurge("all");'
                     )
                 ));
-            }
 
-            if( !is_admin() && (current_user_can( 'administrator' ) || current_user_can( 'editor' )) ) {
-                if( apply_filters( 'umich_cloudflare_menu_purge_page', true ) ) {
-                    $wp_admin_bar->add_menu(array(
-                        'parent' => 'umich-cloudflare-root',
-                        'id'     => 'umich-cloudflare-purge-page',
-                        'title'  => 'Purge Page',
-                        'href'   => '#',
-                        'meta'   => array(
-                            'onclick' => 'return umCloudflarePurge("page");'
-                        )
-                    ));
-                }
+                if( !is_admin() ) {
+                    if( apply_filters( 'umich_cloudflare_menu_purge_page', true ) ) {
+                        $wp_admin_bar->add_menu(array(
+                            'parent' => 'umich-cloudflare-root',
+                            'id'     => 'umich-cloudflare-purge-page',
+                            'title'  => 'Purge Page',
+                            'href'   => '#',
+                            'meta'   => array(
+                                'onclick' => 'return umCloudflarePurge("page");'
+                            )
+                        ));
+                    }
 
-                if( get_option( 'permalink_structure' ) && apply_filters( 'umich_cloudflare_menu_purge_section', true ) ) {
-                    $wp_admin_bar->add_menu(array(
-                        'parent' => 'umich-cloudflare-root',
-                        'id'     => 'umich-cloudflare-purge-section',
-                        'title'  => 'Purge Section',
-                        'href'   => '#',
-                        'meta'   => array(
-                            'onclick' => 'return umCloudflarePurge("section");'
-                        )
-                    ));
+                    if( get_option( 'permalink_structure' ) && apply_filters( 'umich_cloudflare_menu_purge_section', true ) ) {
+                        $wp_admin_bar->add_menu(array(
+                            'parent' => 'umich-cloudflare-root',
+                            'id'     => 'umich-cloudflare-purge-section',
+                            'title'  => 'Purge Section',
+                            'href'   => '#',
+                            'meta'   => array(
+                                'onclick' => 'return umCloudflarePurge("section");'
+                            )
+                        ));
+                    }
                 }
             }
         }

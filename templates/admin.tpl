@@ -44,7 +44,7 @@
                 <td>
                     <input type="number" id="umcf-ttl_browser" name="umich_cloudflare_settings[ttl_browser]" value="<?=esc_attr( $umCFSettings['ttl_browser'] );?>" placeholder="Enter Time in Seconds" class="regular-text" aria-describedby="umcf-ttl_browser-description" />
                     <br/>
-                    <p class="description" id="umcf-ttl_browser-description">Max amount of time (in seconds) to hold page in the browsers cache. Default <?=$umCFSettings['default_ttl_browser'];?> seconds.</p>
+                    <p class="description" id="umcf-ttl_browser-description">Max amount of time (in seconds) to hold page in the browsers cache. Default <?=$umCFSettings['default_ttl_browser'];?> seconds.<br/>Purging the cache will not affect content cached in a users browser.</p>
                 </td>
             </tr>
             <?php endif; ?>
