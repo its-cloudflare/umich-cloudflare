@@ -1,6 +1,8 @@
-<h3>Pantheon Settings</h3>
-
 <table class="form-table">
+    <tr><th colspan="2">
+        <hr/>
+        <h3 style="margin-bottom: 0">Pantheon Settings</h3>
+    </th></tr>
     <tr valign="top">
         <th scope="row"><label for="umcf-apikey">Cache Clear Workflow</label></th>
         <td>

@@ -6,7 +6,7 @@
         <table class="form-table">
             <?php if( $umCFFormSettings['apikey'] ): ?>
             <tr valign="top">
-                <th scope="row"><label for="umcf-apikey">API Key</label></th>
+                <th scope="row"><label for="umcf-apikey">Cloudflare API Key</label></th>
                 <td>
                     <input type="text" id="umcf-apikey" name="umich_cloudflare_settings[apikey]" value="<?=esc_attr( $umCFSettings['apikey'] );?>" placeholder="Enter API Key" class="regular-text" required="required" />
                 </td>
@@ -15,7 +15,7 @@
 
             <?php if( $umCFFormSettings['zone'] ): ?>
             <tr valign="top">
-                <th scope="row"><label for="umcf-zone">Zone</label></th>
+                <th scope="row"><label for="umcf-zone">Cloudflare Zone</label></th>
                 <td>
                     <select id="umcf-zone" name="umich_cloudflare_settings[zone]" class="regular-text" required="required">
                         <option value="">Select a Zone</option>
@@ -27,13 +27,21 @@
             </tr>
             <?php endif; ?>
 
+            <?php if( ($umCFFormSettings['apikey'] || $umCFFormSettings['zone']) && ($umCFFormSettings['ttl'] || $umCFFormSettings['ttl_browser']) ): ?>
+            <tr><th colspan="2">
+                <hr/>
+                <h3 style="margin-bottom: 0">Content Defaults</h3>
+                <p>For any non-media content (pages, posts, etc) managed within wordpress.</p>
+            </th></tr>
+            <?php endif; ?>
+
             <?php if( $umCFFormSettings['ttl'] ): ?>
             <tr valign="top">
-                <th scope="row"><label for="umcf-ttl">Default Page <abbr title="Time to live">TTL</abbr></label></th>
+                <th scope="row"><label for="umcf-ttl">Default <abbr title="Time to live">TTL</abbr></label></th>
                 <td>
                     <input type="number" id="umcf-ttl" name="umich_cloudflare_settings[ttl]" value="<?=esc_attr( $umCFSettings['ttl'] );?>" placeholder="Enter Time in Seconds" class="regular-text" aria-describedby="umcf-ttl-description" />
                     <br/>
-                    <p class="description" id="umcf-ttl-description">Max amount of time (in seconds) to hold page in the <abbr title="Content Delivery Network">CDN</abbr> cache. Default <?=$umCFSettings['default_ttl'];?> seconds.<?php do_action( 'umich_cloudflare_admin_default_ttl_notes', $umCFSettings );?></p>
+                    <p class="description" id="umcf-ttl-description">Max amount of time (in seconds) to hold page, post, etc in the <abbr title="Content Delivery Network">CDN</abbr> cache. Default <em><?=$umCFSettings['default_ttl'];?></em> seconds.<?php do_action( 'umich_cloudflare_admin_default_ttl_notes', $umCFSettings );?></p>
                 </td>
             </tr>
             <?php endif; ?>
@@ -44,18 +52,37 @@
                 <td>
                     <input type="number" id="umcf-ttl_browser" name="umich_cloudflare_settings[ttl_browser]" value="<?=esc_attr( $umCFSettings['ttl_browser'] );?>" placeholder="Enter Time in Seconds" class="regular-text" aria-describedby="umcf-ttl_browser-description" />
                     <br/>
-                    <p class="description" id="umcf-ttl_browser-description">Max amount of time (in seconds) to hold page in the browsers cache. Default <?=$umCFSettings['default_ttl_browser'];?> seconds.<br/>Purging the cache will not affect content cached in a users browser.</p>
+                    <p class="description" id="umcf-ttl_browser-description">Max amount of time (in seconds) to hold page, post, etc in the browsers cache. Default <em><?=$umCFSettings['default_ttl_browser'];?></em> seconds.<br/>Purging the cache will not affect content cached in a users browser.</p>
                 </td>
             </tr>
             <?php endif; ?>
 
+            <?php if( $umCFFormSettings['ttl_static'] || $umCFFormSettings['ttl_static_browser'] ): ?>
+            <tr><th colspan="2">
+                <hr/>
+                <h3 style="margin-bottom: 0">Static Files</h3>
+                <p>For files such as CSS, JS, Images, Documents, Media Uploads, etc.</p>
+            </th></tr>
+            <?php endif; ?>
+
             <?php if( $umCFFormSettings['ttl_static'] ): ?>
             <tr valign="top">
-                <th scope="row"><label for="umcf-ttl_static">Default Static <abbr title="Time to live">TTL</abbr></label></th>
+                <th scope="row"><label for="umcf-ttl_static">Static <abbr title="Time to live">TTL</abbr></label></th>
                 <td>
                     <input type="number" id="umcf-ttl_static" name="umich_cloudflare_settings[ttl_static]" value="<?=esc_attr( $umCFSettings['ttl_static'] );?>" placeholder="Enter Time in Seconds" class="regular-text" aria-describedby="umcf-ttl_static-description" />
                     <br/>
-                    <p class="description" id="umcf-ttl_static-description">For files such as CSS, JS, Images, Documents, Media Uploads, etc.<br/>Max amount of time (in seconds) to hold static asset in cache. Default <?=$umCFSettings['default_ttl_static'];?> seconds.</p>
+                    <p class="description" id="umcf-ttl_static-description">Max amount of time (in seconds) to hold static asset in cache. Default <em><?=$umCFSettings['default_ttl_static'];?></em> seconds.</p>
+                </td>
+            </tr>
+            <?php endif; ?>
+
+            <?php if( $umCFFormSettings['ttl_static_browser'] ): ?>
+            <tr valign="top">
+                <th scope="row"><label for="umcf-ttl_static_browser">Static Browser <abbr title="Time to live">TTL</abbr></label></th>
+                <td>
+                    <input type="number" id="umcf-ttl_static_browser" name="umich_cloudflare_settings[ttl_static_browser]" value="<?=esc_attr( $umCFSettings['ttl_static_browser'] );?>" placeholder="Enter Time in Seconds" class="regular-text" aria-describedby="umcf-ttl_static_browser-description" />
+                    <br/>
+                    <p class="description" id="umcf-ttl_static_browser-description">Max amount of time (in seconds) to hold static asset in the browsers cache. Default <em><?=$umCFSettings['default_ttl_static_browser'];?></em> seconds.<br/>Changing this to <em>0</em> will force the browser to request the file on every pageload.<br/>Purging the cache will not affect content cached in a users browser.</p>
                 </td>
             </tr>
             <?php endif; ?>

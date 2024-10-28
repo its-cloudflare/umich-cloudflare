@@ -128,7 +128,8 @@ class UMCloudflare_Pantheon
         });
 
         add_filter( 'umich_cloudflare_admin_form_settings', function( $settings ){
-            $settings['ttl_static'] = false;
+            $settings['ttl_static']         = false;
+            $settings['ttl_static_browser'] = false;
 
             return $settings;
         });

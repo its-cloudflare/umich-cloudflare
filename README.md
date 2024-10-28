@@ -56,11 +56,12 @@ add_filter( 'umich_cloudflare_menu_purge_section', '__return_false' );
 Customize which settings should be available for management.  Useful in complex wordpress environments.
 ```
 add_filter('umich_cloudflare_admin_form_settings', function( $settings ){
-    $settings['apikey']      = false;
-    $settings['zone']        = false;
-    $settings['ttl']         = false;
-    $settings['ttl_browser'] = false;
-    $settings['ttl_static']  = false;
+    $settings['apikey']             = false;
+    $settings['zone']               = false;
+    $settings['ttl']                = false;
+    $settings['ttl_browser']        = false;
+    $settings['ttl_static']         = false;
+    $settings['ttl_static_browser'] = false;
     return $settings;
 });
 ```
