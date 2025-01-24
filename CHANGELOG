@@ -1,3 +1,9 @@
+1.0.11 (2025-01-24)
+===================
+Resolves Issues #7 & #8
+- add autocomplete attribute to admin apikey field
+- redirect stderr to stdout in workflow script
+
 1.0.10 (2024-10-28)
 ===================
 Add option to set browser TTL for static files. (unavailable on pantheon)

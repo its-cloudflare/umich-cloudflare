@@ -8,7 +8,7 @@
             <tr valign="top">
                 <th scope="row"><label for="umcf-apikey">Cloudflare API Key</label></th>
                 <td>
-                    <input type="text" id="umcf-apikey" name="umich_cloudflare_settings[apikey]" value="<?=esc_attr( $umCFSettings['apikey'] );?>" placeholder="Enter API Key" class="regular-text" required="required" />
+                    <input type="text" id="umcf-apikey" name="umich_cloudflare_settings[apikey]" value="<?=esc_attr( $umCFSettings['apikey'] );?>" placeholder="Enter API Key" class="regular-text" required="required" autocomplete="off" />
                 </td>
             </tr>
             <?php endif; ?>

@@ -1,3 +1,3 @@
 <?php
 
-passthru("wp eval 'UMCloudflare::purgeAll(\"/\");'");
+passthru("wp eval 'UMCloudflare::purgeAll(\"/\");' 2>&1");
