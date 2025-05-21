@@ -3,7 +3,7 @@
  * Plugin Name: University of Michigan: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 1.0.11
+ * Version: 1.0.12
  * Author: U-M: OVPC Digital
  * Author URI: http://vpcomm.umich.edu
  * Update URI: https://github.com/its-cloudflare/umich-cloudflare/releases/latest
@@ -962,7 +962,7 @@ class UMCloudflare
 
         self::$_settings['apikey'] = $key;
 
-        $res = self::_callAPI( 'user/tokens/verify' );
+        $res = self::_callAPI( 'zones' );
 
         json_decode( $res );
         if( json_last_error() === JSON_ERROR_NONE ) {
@@ -972,6 +972,9 @@ class UMCloudflare
                 foreach( $res->errors as $error ) {
                     $errors[] = @$error->message ?: 'Unknown Error';
                 }
+            }
+            else if( !count( $res->result ) ) {
+                $errors[] = "Invalid API Key";
             }
         }
         else {

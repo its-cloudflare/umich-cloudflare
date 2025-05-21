@@ -1,3 +1,8 @@
+1.0.12 (2025-05-21)
+===================
+Resolves Issue #9
+- change key validation to just check if there are any zones
+
 1.0.11 (2025-01-24)
 ===================
 Resolves Issues #7 & #8

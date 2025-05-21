@@ -105,46 +105,48 @@
 
             let apiKey = $(this).val();
 
-            // remove zones
-            zoneSelect.find('option[value!=""]').remove();
+            if( zoneSelect.length ) {
+                // remove zones
+                zoneSelect.find('option[value!=""]').remove();
 
-            // get zone list
-            if( apiKey.length ) {
-                let params = {
-                    nonce : umCFNonce,
-                    action: 'umcloudflare_zones',
-                    apikey: apiKey
-                };
+                // get zone list
+                if( apiKey.length ) {
+                    let params = {
+                        nonce : umCFNonce,
+                        action: 'umcloudflare_zones',
+                        apikey: apiKey
+                    };
 
-                // add loading indicator
-                zoneSelect.after(
-                    '<img class="umcf-loading-status" src="'+ umCFPlugin +'/assets/working-dark.svg" title="Loading available zones from Couldflare" style="vertical-align: middle;" />'
-                );
+                    // add loading indicator
+                    zoneSelect.after(
+                        '<img class="umcf-loading-status" src="'+ umCFPlugin +'/assets/working-dark.svg" title="Loading available zones from Couldflare" style="vertical-align: middle;" />'
+                    );
 
-                $.post( ajaxurl.replace( /^https?:/, window.location.protocol ), params, function( response ){
-                    if( response.nonce.length ) {
-                        umCFNonce = response.nonce;
-                    }
-
-                    // add available zones
-                    if( response.status == 'success' ) {
-                        response.zones.forEach((zone) => {
-                            zoneSelect.append('<option value="'+ zone.id +'">'+ zone.name +'</option>');
-                        });
-
-                        if( zoneSelect.find('option[value!=""]').length == 1 ) {
-                            zoneSelect.val(
-                                zoneSelect.find('option[value!=""]').attr('value')
-                            );
+                    $.post( ajaxurl.replace( /^https?:/, window.location.protocol ), params, function( response ){
+                        if( response.nonce.length ) {
+                            umCFNonce = response.nonce;
                         }
-                    }
-                    else {
-                        alert( '[ERROR] '+ response.message );
-                    }
 
-                    // remove loading indicator
-                    zoneSelect.parent().find('img.umcf-loading-status').remove();
-                }, 'json' );
+                        // add available zones
+                        if( response.status == 'success' ) {
+                            response.zones.forEach((zone) => {
+                                zoneSelect.append('<option value="'+ zone.id +'">'+ zone.name +'</option>');
+                            });
+
+                            if( zoneSelect.find('option[value!=""]').length == 1 ) {
+                                zoneSelect.val(
+                                    zoneSelect.find('option[value!=""]').attr('value')
+                                );
+                            }
+                        }
+                        else {
+                            alert( '[ERROR] '+ response.message );
+                        }
+
+                        // remove loading indicator
+                        zoneSelect.parent().find('img.umcf-loading-status').remove();
+                    }, 'json' );
+                }
             }
         });
     });
