@@ -3,7 +3,7 @@
  * Plugin Name: University of Michigan: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 1.0.12
+ * Version: 1.0.13
  * Author: U-M: OVPC Digital
  * Author URI: http://vpcomm.umich.edu
  * Update URI: https://github.com/its-cloudflare/umich-cloudflare/releases/latest
@@ -460,8 +460,10 @@ class UMCloudflare
      */
     static private function _purge( $params )
     {
+        $endpoint = '/zones/'. self::$_settings['zone'] .'/purge_cache';
+
         $res = self::_callAPI(
-            '/zones/'. self::$_settings['zone'] .'/purge_cache',
+            $endpoint,
             'POST',
             json_encode( $params )
         );
