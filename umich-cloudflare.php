@@ -3,7 +3,7 @@
  * Plugin Name: University of Michigan: Cloudflare Cache
  * Plugin URI: https://github.com/its-cloudflare/umich-cloudflare/
  * Description: Provides cloudflare cache purging functionality.
- * Version: 1.0.13
+ * Version: 1.0.14
  * Author: U-M: OVPC Digital
  * Author URI: http://vpcomm.umich.edu
  * Update URI: https://github.com/its-cloudflare/umich-cloudflare/releases/latest
@@ -75,29 +75,34 @@ class UMCloudflare
         }
 
         add_action( 'init', function(){
-            // IF LOGGED IN COOKIE AND COOKIE STALE (not logged in), LOGOUT
-            if( isset( $_COOKIE[ LOGGED_IN_COOKIE ] ) && !is_user_logged_in() ) {
-                add_action( 'wp_logout', function(){
+            if( !is_login() && !is_admin() ) {
+                // IF LOGGED IN COOKIE AND COOKIE STALE (not logged in), LOGOUT
+                if( isset( $_COOKIE[ LOGGED_IN_COOKIE ] ) && !is_user_logged_in() ) {
+                    add_action( 'wp_logout', function(){
+                        wp_redirect( $_SERVER['REQUEST_URI'] );
+                        exit;
+                    });
+
+                    setcookie( TEST_COOKIE, '', -3600, COOKIEPATH, COOKIE_DOMAIN );
+
+                    if( COOKIEPATH !== SITECOOKIEPATH ) {
+                        setcookie( TEST_COOKIE, '', -3600, SITECOOKIEPATH, COOKIE_DOMAIN );
+                    }
+                    wp_logout();
+
                     wp_redirect( $_SERVER['REQUEST_URI'] );
                     exit;
-                });
-
-                setcookie( TEST_COOKIE, '', -3600, COOKIEPATH, COOKIE_DOMAIN );
-
-                if( COOKIEPATH !== SITECOOKIEPATH ) {
-                    setcookie( TEST_COOKIE, '', -3600, SITECOOKIEPATH, COOKIE_DOMAIN );
                 }
-                wp_logout();
+                // NOT LOGGED IN AND HAS TEST COOKIE (remove test cookie)
+                else if( !isset( $_COOKIE[ LOGGED_IN_COOKIE ] ) && isset( $_COOKIE[ TEST_COOKIE ] ) ) {
+                    setcookie( TEST_COOKIE, '', -3600, COOKIEPATH, COOKIE_DOMAIN );
 
-                wp_redirect( $_SERVER['REQUEST_URI'] );
-                exit;
-            }
-            // NOT LOGGED IN AND HAS TEST COOKIE (remove test cookie)
-            else if( !isset( $_COOKIE[ LOGGED_IN_COOKIE ] ) && isset( $_COOKIE[ TEST_COOKIE ] ) ) {
-                setcookie( TEST_COOKIE, '', -3600, COOKIEPATH, COOKIE_DOMAIN );
+                    if( COOKIEPATH !== SITECOOKIEPATH ) {
+                        setcookie( TEST_COOKIE, '', -3600, SITECOOKIEPATH, COOKIE_DOMAIN );
+                    }
 
-                if( COOKIEPATH !== SITECOOKIEPATH ) {
-                    setcookie( TEST_COOKIE, '', -3600, SITECOOKIEPATH, COOKIE_DOMAIN );
+                    wp_redirect( $_SERVER['REQUEST_URI'] );
+                    exit;
                 }
             }
 

@@ -1,3 +1,7 @@
+1.0.14 (2025-09-25)
+===================
+Resolves compatibility issue with All-In-One Security (AIOS) plugin
+
 1.0.13 (2025-09-23)
 ===================
 Resolves Issue #10
