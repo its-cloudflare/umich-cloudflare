@@ -20,7 +20,7 @@ if( isset( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
 
 class UMCloudflare
 {
-    static private $_defaultTTL              = 7200;
+    static private $_defaultTTL              = 31536000;
     static private $_defaultBrowserTTL       = 0;
     static private $_defaultStaticTTL        = 31536000;
     static private $_defaultStaticBrowserTTL = 3600;
@@ -45,12 +45,13 @@ class UMCloudflare
     ];
 
     static private $_networkSettings = [
-        'apikey'             => '',
-        'zone'               => '',
-        'ttl'                => '',
-        'ttl_browser'        => '',
-        'ttl_static'         => '',
-        'ttl_static_browser' => '',
+        'apikey'              => '',
+        'zone'                => '',
+        'ttl'                 => '',
+        'ttl_browser'         => '',
+        'ttl_static'          => '',
+        'ttl_static_browser'  => '',
+        'network_site_apikey' => 0,
     ];
 
     static public function init()
@@ -458,6 +459,78 @@ class UMCloudflare
     }
 
     /**
+     * Purge everything for all sites in the network
+     *
+     * @return bool
+     */
+    static public function purgeNetwork()
+    {
+        if( !self::isConfigured() || !is_multisite() || !is_super_admin() ) {
+            return false;
+        }
+
+        $status = [];
+
+        $paths = (array) $paths;
+
+        foreach( get_sites() as $site ) {
+            $domain = $site->domain;
+
+            // check for Wordpress MU Domain Mapping Plugin usage
+            if( function_exists('domain_mapping_siteurl') ) {
+                global $wpdb;
+
+                $tDomain = $wpdb->get_var( "SELECT domain FROM {$wpdb->base_prefix}domain_mapping WHERE blog_id = '{$wpdb->blogid}' AND domain = '" . $wpdb->escape( $_SERVER[ 'HTTP_HOST' ] ) . "' LIMIT 1" );
+                if( $tDomain ) {
+                    $domain = $tDomain;
+                }
+            }
+
+            if( isset( $status[ $domain ] ) ) {
+                continue;
+            }
+
+            // check if has own apikey
+            $thisSettings = array_filter( get_blog_option( $site->blog_id, 'umich_cloudflare_settings', array() ), 'trim' );
+            if( $thisSettings && isset( $thisSettings['apikey'] ) && isset( $thisSettings['zone'] ) ) {
+                $origSettings = self::$_settings;
+
+                self::$_settings['apikey'] = $thisSettings['apikey'];
+                self::$_settings['zone']   = $thisSettings['zone'];
+
+                do_action( 'umich_cloudflare_purge_all', [ "{$domain}/" ] );
+                $res = self::_purge( [ 'prefixes' => [ "{$domain}/" ] ] );
+
+                $status[ $domain ] = $res;
+
+                self::$_settings = $origSettings;
+            }
+            else {
+                $status[ $domain ] = false;
+                $paths[] = "{$domain}/";
+            }
+        }
+
+        if( $paths ) {
+            do_action( 'umich_cloudflare_purge_all', $paths );
+
+            $res = self::_purge( [ 'prefixes' => $paths ] );
+
+            foreach( $paths as $path ) {
+                list( $domain ) = explode( '/', $path );
+                $status[ $domain ] = $res;
+            }
+        }
+
+        ksort( $status );
+
+        return [
+            'status'  => array_search( false, $status ) ? false : true,
+            'domains' => $status
+        ];
+    }
+
+    /**
      * Make call to cloudflare purge api
      *
      * @param array $params cloudflare purge params
@@ -618,15 +691,17 @@ class UMCloudflare
 
         if( self::$_settings['apikey'] && self::$_settings['zone'] ) {
             if( current_user_can( 'administrator' ) || current_user_can( 'editor' ) ) {
-                $wp_admin_bar->add_menu(array(
-                    'parent' => 'umich-cloudflare-root',
-                    'id'     => 'umich-cloudflare-purge-site',
-                    'title'  => 'Purge All',
-                    'href'   => '#',
-                    'meta'   => array(
-                        'onclick' => 'return umCloudflarePurge("all");'
-                    )
-                ));
+                if( !is_network_admin() ) {
+                    $wp_admin_bar->add_menu(array(
+                        'parent' => 'umich-cloudflare-root',
+                        'id'     => 'umich-cloudflare-purge-site',
+                        'title'  => 'Purge Site',
+                        'href'   => '#',
+                        'meta'   => array(
+                            'onclick' => 'return umCloudflarePurge("all");'
+                        )
+                    ));
+                }
 
                 if( !is_admin() ) {
                     if( apply_filters( 'umich_cloudflare_menu_purge_page', true ) ) {
@@ -653,17 +728,37 @@ class UMCloudflare
                         ));
                     }
                 }
+
+                if( is_network_admin() && is_super_admin() ) {
+                    $wp_admin_bar->add_menu(array(
+                        'parent' => 'umich-cloudflare-root',
+                        'id'     => 'umich-cloudflare-purge-network',
+                        'title'  => 'Purge Network',
+                        'href'   => '#',
+                        'meta'   => array(
+                            'onclick' => 'return umCloudflarePurge("network");'
+                        )
+                    ));
+                }
             }
         }
-        else {
-            if( current_user_can( 'administrator' ) ) {
-                $wp_admin_bar->add_menu(array(
-                    'parent' => 'umich-cloudflare-root',
-                    'id'     => 'umich-cloudflare-settings',
-                    'title'  => 'Cloudflare Settings',
-                    'href'   => site_url( '/wp-admin/options-general.php?page=umich_cloudflare'),
-                ));
-            }
+
+        if( current_user_can( 'administrator' ) && !is_network_admin() ) {
+            $wp_admin_bar->add_menu(array(
+                'parent' => 'umich-cloudflare-root',
+                'id'     => 'umich-cloudflare-settings',
+                'title'  => ''. (is_multisite() ? 'Site ' : null) .'Settings',
+                'href'   => site_url( '/wp-admin/options-general.php?page=umich_cloudflare'),
+            ));
+        }
+
+        if( is_multisite() && is_super_admin() ) {
+            $wp_admin_bar->add_menu(array(
+                'parent' => 'umich-cloudflare-root',
+                'id'     => 'umich-cloudflare-network-settings',
+                'title'  => 'Network Settings',
+                'href'   => site_url( '/wp-admin/network/settings.php?page=umich_cloudflare'),
+            ));
         }
     }
 
@@ -673,17 +768,21 @@ class UMCloudflare
     static public function adminMenu( $isNetwork = false )
     {
         $umCFFormSettings = [
-            'apikey'             => true,
-            'zone'               => true,
-            'ttl'                => true,
-            'ttl_browser'        => true,
-            'ttl_static'         => true,
-            'ttl_static_browser' => true,
+            'apikey'              => true,
+            'zone'                => true,
+            'ttl'                 => true,
+            'ttl_browser'         => true,
+            'ttl_static'          => true,
+            'ttl_static_browser'  => true,
+            'network_site_apikey' => true,
         ];
 
         if( !$isNetwork && is_multisite() ) {
-            $umCFFormSettings['apikey']             = false;
-            $umCFFormSettings['zone']               = false;
+            if( !self::$_networkSettings['network_site_apikey'] ) {
+                $umCFFormSettings['apikey'] = false;
+                $umCFFormSettings['zone']   = false;
+            }
+
             $umCFFormSettings['ttl_static']         = false;
             $umCFFormSettings['ttl_static_browser'] = false;
         }
@@ -698,20 +797,26 @@ class UMCloudflare
         // HANDLE FORM SAVE
         if( $_POST && isset( $_POST['umich_cloudflare_nonce'] ) && wp_verify_nonce( $_POST['umich_cloudflare_nonce'], 'umich-cloudflare' ) ) {
             $settings = array_merge([
-                    'apikey'             => '',
-                    'zone'               => '',
-                    'ttl'                => '',
-                    'ttl_browser'        => '',
-                    'ttl_static'         => '',
-                    'ttl_static_browser' => '',
+                    'apikey'              => '',
+                    'zone'                => '',
+                    'ttl'                 => '',
+                    'ttl_browser'         => '',
+                    'ttl_static'          => '',
+                    'ttl_static_browser'  => '',
+                    'network_site_apikey' => 0,
                 ],
                 array_filter( $_POST['umich_cloudflare_settings'] ?: array(), 'trim' )
             );
 
-            $settings['ttl']                 = $settings['ttl']                 ? (int) $settings['ttl']         : '';
-            $settings['ttl_browser']         = $settings['ttl_browser']         ? (int) $settings['ttl_browser'] : '';
-            $settings['ttl_static']          = $settings['ttl_static']          ? (int) $settings['ttl_static']  : '';
+            $settings['ttl']                 = $settings['ttl']                 ? (int) $settings['ttl']                 : '';
+            $settings['ttl_browser']         = $settings['ttl_browser']         ? (int) $settings['ttl_browser']         : '';
+            $settings['ttl_static']          = $settings['ttl_static']          ? (int) $settings['ttl_static']          : '';
             $settings['ttl_static_browser']  = $settings['ttl_static_browser']  ? (int) $settings['ttl_static_browser']  : '';
+            $settings['network_site_apikey'] = $settings['network_site_apikey'] ? 1                                      : 0;
+
+            if( !is_network_admin() ) {
+                unset( $settings['network_site_apikey'] );
+            }
 
             // validate apikey, zone, and ttl
             $hasErrors = false;
@@ -844,12 +949,13 @@ class UMCloudflare
                 // get network or site specific settings
                 if( $isNetwork ) {
                     $umCFSettings = array_merge([
-                            'apikey'             => '',
-                            'zone'               => '',
-                            'ttl'                => '',
-                            'ttl_browser'        => '',
-                            'ttl_static'         => '',
-                            'ttl_static_browser' => '',
+                            'apikey'              => '',
+                            'zone'                => '',
+                            'ttl'                 => '',
+                            'ttl_browser'         => '',
+                            'ttl_static'          => '',
+                            'ttl_static_browser'  => '',
+                            'network_site_apikey' => 0,
                         ],
                         self::$_networkSettings
                     );
@@ -941,6 +1047,14 @@ class UMCloudflare
                         $url = str_replace( $urlParts['path'], $path, $url );
 
                         $return['status'] = self::purgeAll( $url );
+                    }
+                    break;
+
+                case 'network':
+                    $res = self::purgeNetwork();
+                    if( $res ) {
+                        $return['status']  = isset( $res['status'] )  ? $res['status']  : false;
+                        $return['domains'] = isset( $res['domains'] ) ? $res['domains'] : [];
                     }
                     break;
 

@@ -1,3 +1,11 @@
+1.1.0 (2025-06-25)
+===================
+Increased Content Default TTL to 1 year from 2 hours
+Multisite
+- Add network ability to disable API Key & Zone Configuration options on sites
+- Ability to purge cache for entire network
+  * works if sites have different api keys
+
 1.0.14 (2025-09-25)
 ===================
 Resolves compatibility issue with All-In-One Security (AIOS) plugin

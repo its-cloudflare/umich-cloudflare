@@ -8,7 +8,7 @@
             <tr valign="top">
                 <th scope="row"><label for="umcf-apikey">Cloudflare API Key</label></th>
                 <td>
-                    <input type="text" id="umcf-apikey" name="umich_cloudflare_settings[apikey]" value="<?=esc_attr( $umCFSettings['apikey'] );?>" placeholder="Enter API Key" class="regular-text" required="required" autocomplete="off" />
+                    <input type="text" id="umcf-apikey" name="umich_cloudflare_settings[apikey]" value="<?=esc_attr( $umCFSettings['apikey'] );?>" placeholder="Enter API Key" class="regular-text" <?php if( is_network_admin() || !is_multisite() ): ?>required="required"<?php endif; ?> autocomplete="off" />
                 </td>
             </tr>
             <?php endif; ?>
@@ -17,7 +17,7 @@
             <tr valign="top">
                 <th scope="row"><label for="umcf-zone">Cloudflare Zone</label></th>
                 <td>
-                    <select id="umcf-zone" name="umich_cloudflare_settings[zone]" class="regular-text" required="required">
+                    <select id="umcf-zone" name="umich_cloudflare_settings[zone]" class="regular-text" <?php if( is_network_admin() || !is_multisite() ): ?>required="required"<?php endif; ?>>
                         <option value="">Select a Zone</option>
                         <?php foreach( $umCFZones as $zone ): ?>
                         <option value="<?=esc_attr( $zone['id'] );?>"<?=($zone['id'] == $umCFSettings['zone'] ? ' selected="selected"' : null);?>><?=$zone['name'];?></option>
@@ -27,11 +27,21 @@
             </tr>
             <?php endif; ?>
 
-            <?php if( ($umCFFormSettings['apikey'] || $umCFFormSettings['zone']) && ($umCFFormSettings['ttl'] || $umCFFormSettings['ttl_browser']) ): ?>
+            <?php if( !is_network_admin() && is_multisite() && ($umCFFormSettings['apikey'] || $umCFFormSettings['zone']) ): ?>
+            <tr valign="top">
+                <th colspan="2">
+                    <p class="description">API Key &amp; Zone are only needed if yours differs from the multisite default. Talk to your site administrator if you have questions.</p>
+                </th>
+            </tr>
+            <?php endif; ?>
+
+            <?php if( $umCFFormSettings['ttl'] || $umCFFormSettings['ttl_browser'] ): ?>
             <tr><th colspan="2">
+                <?php if( $umCFFormSettings['apikey'] || $umCFFormSettings['zone'] ): ?>
                 <hr/>
+                <?php endif; ?>
                 <h3 style="margin-bottom: 0">Content Defaults</h3>
-                <p>For any non-media content (pages, posts, etc) managed within wordpress.</p>
+                <p style="margin-bottom: 0">For any non-media content (pages, posts, etc) managed within wordpress.</p>
             </th></tr>
             <?php endif; ?>
 
@@ -61,7 +71,7 @@
             <tr><th colspan="2">
                 <hr/>
                 <h3 style="margin-bottom: 0">Static Files</h3>
-                <p>For files such as CSS, JS, Images, Documents, Media Uploads, etc.</p>
+                <p style="margin-bottom: 0">For files such as CSS, JS, Images, Documents, Media Uploads, etc.</p>
             </th></tr>
             <?php endif; ?>
 
@@ -83,6 +93,24 @@
                     <input type="number" id="umcf-ttl_static_browser" name="umich_cloudflare_settings[ttl_static_browser]" value="<?=esc_attr( $umCFSettings['ttl_static_browser'] );?>" placeholder="Enter Time in Seconds" class="regular-text" aria-describedby="umcf-ttl_static_browser-description" />
                     <br/>
                     <p class="description" id="umcf-ttl_static_browser-description">Max amount of time (in seconds) to hold static asset in the browsers cache. Default <em><?=$umCFSettings['default_ttl_static_browser'];?></em> seconds.<br/>Changing this to <em>0</em> will force the browser to request the file on every pageload.<br/>Purging the cache will not affect content cached in a users browser.</p>
+                </td>
+            </tr>
+            <?php endif; ?>
+
+            <?php if( is_network_admin() ): ?>
+            <tr><th colspan="2">
+                <hr/>
+                <h3 style="margin-bottom: 0">Site Admin Options</h3>
+                <p style="margin-bottom: 0">Enable plugin settings for individual site administrators.</p>
+            </th></tr>
+            <tr valign="top">
+                <th scope="row"><label for="umcf-network-site-admin-apikey">API Key &amp; Zone Configuration</label></th>
+                <td>
+                    <input type="radio" id="umcf-network-site-admin--apikey-1" name="umich_cloudflare_settings[network_site_apikey]" value="1"<?=($umCFSettings['network_site_apikey'] == 1 ? ' checked="checked"' : null);?>>
+                    <label for="umcf-network-site-admin--apikey-1">Enabled</label>
+
+                    <input type="radio" id="umcf-network-site-admin--apikey-2" name="umich_cloudflare_settings[network_site_apikey]" value="0"<?=($umCFSettings['network_site_apikey'] == 0 ? ' checked="checked"' : null);?>>
+                    <label for="umcf-network-site-admin--apikey-2">Disabled</label>
                 </td>
             </tr>
             <?php endif; ?>

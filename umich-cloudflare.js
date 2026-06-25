@@ -50,6 +50,21 @@ function umCloudflarePurge( type ) {
             visibility: 'visible'
         }).fadeIn();
 
+        if( response.domains && response.domains.length ) {
+            let message = '';
+            let domains = [];
+
+            Object.entries( response.domains ).forEach(([ key, value ]) => {
+                if( !value ) {
+                    domains.push( key );
+                }
+            });
+
+            if( domains.length ) {
+                alert( '[ERROR] There were problems purging one or more sites:\n\n - '+ domains.join('\n - ') );
+            }
+        }
+
         // set timer to clear status icon
         umCloudflareTimer = setTimeout(function(){
             umCloudflareStatusImg.fadeOut(function(){
